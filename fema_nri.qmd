@@ -1,9 +1,8 @@
 ---
 title: "FEMA National Risk Index (NRI)"
-subtitle: "sub. **FIX LATER!**"
-description: "Visualizing FEMA NRI Counties in California Compared To Other States6"
+description: "Visualizing FEMA NRI Counties in California Compared To Other States"
 author: "Marie Tolteca"
-date: 1/22/2025
+date: 1/27/2025
 toc: true
 code-line-numbers: true
 editor_options: 
@@ -11,35 +10,109 @@ editor_options:
 ---
 
 # Library Packages
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(here)
 ```
 
 # Read in Data
-```{r}
+```{r, warning=FALSE,message=FALSE}
 nri <- read_csv(here("data","National_Risk_Index_Counties_807384124455672111.csv")) %>% 
   janitor::clean_names()
 ```
-IV. Build your visualization
-Create a data viz that helps to answer the question, How do FEMA National Risk Index scores for counties in California compare to those in other states? This may require some data wrangling.
-
-BEFORE you start wrangling / building your viz, be sure to…
-identify / jot down your variables of interest and consider which data types they are
-use online tools like from Data to Viz to help determine appropriate graph types, given your variables
-roughly sketch out your plots by hand (see why this step matters!)
-```{r}
+# Data Wrangle
+```{r, output = FALSE}
+# Check outputs in state_name
 unique(nri$state_name)
-unique(nri$state_name_abbreviation)
+
+# Filter for only US states (50 states)
+nri_filtered <- nri %>% 
+  filter(!state_name %in% c("Northern Mariana Islands", 
+                            "Puerto Rico", 
+                            "American Samoa", 
+                            "Guam", 
+                            "District of Columbia", 
+                            "Virgin Islands")) %>% 
+  filter(county_type == c("County") ) %>% 
+  mutate(state_name_abbreviation = fct_reorder(
+    state_name_abbreviation,
+    national_risk_index_score_composite,
+    .fun = median,
+    na.rm = TRUE))
+
+# Checking total number of rows
+nri_filtered %>%
+  count(state_name)
+```
+
+# Plot
+```{r, warning=FALSE}
+#| fig-cap: "Comparison of FEMA NRI Score in California to other U.S. states. Data: FEMA National Risk Index Counties (2025 Release), downloaded from the FEMA Resilience Analysis and Planning Tool (RAPT). (Link: https://www.fema.gov/emergency-managers/practitioners/resilience-analysis-and-planning-tool)."
+#| fig-alt: "California had a median of 94.85 of National Risk Index Score (Percentile)"
+
+# Calculate CA median
+ca_median <- median(
+  nri_filtered$national_risk_index_score_composite[nri_filtered$state_name_abbreviation == "CA"],
+  na.rm = TRUE)
+
+# Plot
+nri_filtered %>%
+  ggplot(aes(
+    x = state_name_abbreviation,
+    y = national_risk_index_score_composite)) +
+  geom_boxplot(
+    width = 0.8,
+    fill = "cyan",
+    outlier.shape = NA,
+    coef = 0,
+    alpha = 0.7) +
+  # Highlight CA
+  gghighlight::gghighlight(state_name_abbreviation == "CA") +
+  # Horizontal line for CA median
+  geom_hline(
+    yintercept = ca_median,
+    linetype = "dashed",
+    color = "firebrick",
+    size = 0.8) +
+  geom_jitter(
+    aes(fill = state_name_abbreviation == "CA"),
+    shape = 21,
+    color = "black",
+    alpha = 0.8,
+    show.legend = FALSE,
+    width = 0.2,
+    height = 0) +
+  scale_fill_manual(values = c("FALSE" = "grey40", "TRUE" = "cyan4")) +
+  ylim(10, NA) +
+  labs(
+    title = "Comparison of FEMA National Risk Index Scores by State",
+    subtitle = "California counties highlighted relative to other U.S. states",
+    x = "",
+    y = "National Risk Index Score (Percentile)") +
+  # Theme
+  theme_light() +
+  theme(
+    axis.text.x = element_text(angle = 90, vjust = 0.5),
+    legend.position = "none")
+
 
 ```
 
+# Questions
+1. What are your variables of interest and what kinds of data (e.g. numeric, categorical, ordered, etc.) are they (a bullet point list is fine)?
+The variables of interest are 
+- `state_name` (character, categorical), 
+- `state_name_abbreviations`(character, categorical), and 
+- `national_risk_index_state_percentile_composite`(numeric) 
 
+2. How did you decide which type of graphic form was best suited for answering the question? What alternative graphic forms could you have used instead? Why did you settle on this particular graphic form?
+After I did the exploration, my initial thought a boxplot was a great idea because of the numeric variable and  the characters. I then overlayed a jitter plot to show the dispersion of the data better and show its distribution. I could have used a density ridge plot, however when I attempted to make one I felt the distribution of each variable was squished and not ideal.
 
-Your final visualization should:
+3. Summarize your main finding in no more than two sentences.
+California counties have among the highest FEMA National Risk Index scores compared to other states, with a median of 94.85. The lowest scoring states have median NRI scores around 10–15.
 
-include data for the 50 US states only (no territories)
-include a title (short, descriptive) & subtitle (describes main takeaway) (see Fundamentals of Data Visualization, Ch 22 for an example), a caption (describes the data source, e.g. “Data: FEMA National Risk Index (2025 Release)”), and alt text (following the formula you recently practiced in lab; use the fig-alt code chunk option to apply your alt text)
-consider and implement strategies for highlighting trends / important information (e.g. arranging data, highlighting data, adjusting scales)
-use custom colors (if applicable), rather than ggplot defaults
-have an updated / polished theme
+4. What modifications did you make to this visualization to make it more easily readable?
+I highlighted CA with a different color to make it easily identifiable. Jitter points were added to show the distribution of level scores. The boxplot displays the median and interquartile range for each state.
+
+5. Is there anything you wanted to implement, but didn’t know how? If so, please describe.
+I would have liked to remove most of the states and keep only the top five so it is less cluttered.

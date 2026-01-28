@@ -1,8 +1,8 @@
 # FEMA National Risk Index (NRI) – California vs Other U.S. States
 
-# Author: Marie Tolteca, MEDS Student
+#### Author: Marie Tolteca, MEDS Student
 
-# Date: 01/28/2026
+#### Date: 01/28/2026
 
 ## Project Overview
 

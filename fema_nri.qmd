@@ -36,7 +36,7 @@ nri_filtered <- nri %>%
   filter(county_type == c("County") ) %>% 
   mutate(state_name_abbreviation = fct_reorder(
     state_name_abbreviation,
-    national_risk_index_score_composite,
+    national_risk_index_state_percentile_composite,
     .fun = median,
     na.rm = TRUE))
 
@@ -52,14 +52,14 @@ nri_filtered %>%
 
 # Calculate CA median
 ca_median <- median(
-  nri_filtered$national_risk_index_score_composite[nri_filtered$state_name_abbreviation == "CA"],
+  nri_filtered$national_risk_index_state_percentile_composite[nri_filtered$state_name_abbreviation == "CA"],
   na.rm = TRUE)
 
 # Plot
 nri_filtered %>%
   ggplot(aes(
     x = state_name_abbreviation,
-    y = national_risk_index_score_composite)) +
+    y = national_risk_index_state_percentile_composite)) +
   geom_boxplot(
     width = 0.8,
     fill = "cyan",

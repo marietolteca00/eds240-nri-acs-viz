@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Marie Tolteca">
-<meta name="dcterms.date" content="2025-01-27">
+<meta name="dcterms.date" content="2025-02-04">
 <meta name="description" content="Visualizing FEMA NRI Counties in California Compared To Other States">
 
 <title>FEMA National Risk Index (NRI)</title>
@@ -87,6 +87,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#library-packages" id="toc-library-packages" class="nav-link active" data-scroll-target="#library-packages">Library Packages</a></li>
   <li><a href="#read-in-data" id="toc-read-in-data" class="nav-link" data-scroll-target="#read-in-data">Read in Data</a></li>
+  <li><a href="#exploration" id="toc-exploration" class="nav-link" data-scroll-target="#exploration">Exploration</a></li>
   <li><a href="#data-wrangle" id="toc-data-wrangle" class="nav-link" data-scroll-target="#data-wrangle">Data Wrangle</a></li>
   <li><a href="#plot" id="toc-plot" class="nav-link" data-scroll-target="#plot">Plot</a></li>
   <li><a href="#questions" id="toc-questions" class="nav-link" data-scroll-target="#questions">Questions</a></li>
@@ -119,7 +120,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 27, 2025</p>
+      <p class="date">February 4, 2025</p>
     </div>
   </div>
   
@@ -145,83 +146,107 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-2"><a href="#cb2-2"></a>  janitor<span class="sc">::</span><span class="fu">clean_names</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
+<section id="exploration" class="level1">
+<h1>Exploration</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="co"># Check outputs in state_name</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="fu">unique</span>(nri<span class="sc">$</span>state_name)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "Alabama"                  "Alaska"                  
+ [3] "Arizona"                  "Arkansas"                
+ [5] "California"               "Colorado"                
+ [7] "Delaware"                 "District of Columbia"    
+ [9] "Florida"                  "Georgia"                 
+[11] "Hawaii"                   "Idaho"                   
+[13] "Illinois"                 "Indiana"                 
+[15] "Iowa"                     "Kansas"                  
+[17] "Kentucky"                 "Louisiana"               
+[19] "Maine"                    "Maryland"                
+[21] "Massachusetts"            "Michigan"                
+[23] "Minnesota"                "Mississippi"             
+[25] "Missouri"                 "Montana"                 
+[27] "Nebraska"                 "Nevada"                  
+[29] "New Hampshire"            "New Jersey"              
+[31] "New Mexico"               "New York"                
+[33] "North Carolina"           "North Dakota"            
+[35] "Ohio"                     "Oklahoma"                
+[37] "Oregon"                   "Pennsylvania"            
+[39] "Rhode Island"             "South Carolina"          
+[41] "South Dakota"             "Tennessee"               
+[43] "Texas"                    "Utah"                    
+[45] "Vermont"                  "Virginia"                
+[47] "Washington"               "West Virginia"           
+[49] "Wisconsin"                "Wyoming"                 
+[51] "American Samoa"           "Guam"                    
+[53] "Northern Mariana Islands" "Puerto Rico"             
+[55] "Virgin Islands"           "Connecticut"             </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="fu">unique</span>(nri<span class="sc">$</span>state_name_abbreviation)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "AL" "AK" "AZ" "AR" "CA" "CO" "DE" "DC" "FL" "GA" "HI" "ID" "IL" "IN" "IA"
+[16] "KS" "KY" "LA" "ME" "MD" "MA" "MI" "MN" "MS" "MO" "MT" "NE" "NV" "NH" "NJ"
+[31] "NM" "NY" "NC" "ND" "OH" "OK" "OR" "PA" "RI" "SC" "SD" "TN" "TX" "UT" "VT"
+[46] "VA" "WA" "WV" "WI" "WY" "AS" "GU" "MP" "PR" "VI" "CT"</code></pre>
+</div>
+</div>
+</section>
 <section id="data-wrangle" class="level1">
 <h1>Data Wrangle</h1>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="co"># Check outputs in state_name</span></span>
-<span id="cb3-2"><a href="#cb3-2"></a><span class="fu">unique</span>(nri<span class="sc">$</span>state_name)</span>
-<span id="cb3-3"><a href="#cb3-3"></a></span>
-<span id="cb3-4"><a href="#cb3-4"></a><span class="co"># Filter for only US states (50 states)</span></span>
-<span id="cb3-5"><a href="#cb3-5"></a>nri_filtered <span class="ot">&lt;-</span> nri <span class="sc">%&gt;%</span> </span>
-<span id="cb3-6"><a href="#cb3-6"></a>  <span class="fu">filter</span>(<span class="sc">!</span>state_name <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Northern Mariana Islands"</span>, </span>
-<span id="cb3-7"><a href="#cb3-7"></a>                            <span class="st">"Puerto Rico"</span>, </span>
-<span id="cb3-8"><a href="#cb3-8"></a>                            <span class="st">"American Samoa"</span>, </span>
-<span id="cb3-9"><a href="#cb3-9"></a>                            <span class="st">"Guam"</span>, </span>
-<span id="cb3-10"><a href="#cb3-10"></a>                            <span class="st">"District of Columbia"</span>, </span>
-<span id="cb3-11"><a href="#cb3-11"></a>                            <span class="st">"Virgin Islands"</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb3-12"><a href="#cb3-12"></a>  <span class="fu">filter</span>(county_type <span class="sc">==</span> <span class="fu">c</span>(<span class="st">"County"</span>) ) <span class="sc">%&gt;%</span> </span>
-<span id="cb3-13"><a href="#cb3-13"></a>  <span class="fu">mutate</span>(<span class="at">state_name_abbreviation =</span> <span class="fu">fct_reorder</span>(</span>
-<span id="cb3-14"><a href="#cb3-14"></a>    state_name_abbreviation,</span>
-<span id="cb3-15"><a href="#cb3-15"></a>    national_risk_index_state_percentile_composite,</span>
-<span id="cb3-16"><a href="#cb3-16"></a>    <span class="at">.fun =</span> median,</span>
-<span id="cb3-17"><a href="#cb3-17"></a>    <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
-<span id="cb3-18"><a href="#cb3-18"></a></span>
-<span id="cb3-19"><a href="#cb3-19"></a><span class="co"># Checking total number of rows</span></span>
-<span id="cb3-20"><a href="#cb3-20"></a>nri_filtered <span class="sc">%&gt;%</span></span>
-<span id="cb3-21"><a href="#cb3-21"></a>  <span class="fu">count</span>(state_name)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="co"># Removing rows containing data from U.S territories and Washington D.C.</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a>nri_counties <span class="ot">&lt;-</span> nri <span class="sc">|&gt;</span> </span>
+<span id="cb7-3"><a href="#cb7-3"></a>  <span class="fu">filter</span>(<span class="sc">!</span>state_name <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"American Samoa"</span>, </span>
+<span id="cb7-4"><a href="#cb7-4"></a>                            <span class="st">"Northern Mariana Islands"</span>, </span>
+<span id="cb7-5"><a href="#cb7-5"></a>                            <span class="st">"Virgin Islands"</span>, </span>
+<span id="cb7-6"><a href="#cb7-6"></a>                            <span class="st">"District of Columbia"</span>, </span>
+<span id="cb7-7"><a href="#cb7-7"></a>                            <span class="st">"Guam"</span>, </span>
+<span id="cb7-8"><a href="#cb7-8"></a>                            <span class="st">"Puerto Rico"</span>), </span>
+<span id="cb7-9"><a href="#cb7-9"></a>         <span class="co"># Only selecting counties, removing planning areas, borough, census area, municipality etc.  </span></span>
+<span id="cb7-10"><a href="#cb7-10"></a>         county_type <span class="sc">==</span> <span class="st">"County"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb7-11"><a href="#cb7-11"></a>  <span class="co"># Reordering state name abbreviation based on median national risk index score composite values </span></span>
+<span id="cb7-12"><a href="#cb7-12"></a>  <span class="fu">mutate</span>(<span class="at">state_name_abbreviation =</span> <span class="fu">reorder</span>(state_name_abbreviation, </span>
+<span id="cb7-13"><a href="#cb7-13"></a>                                            national_risk_index_score_composite, </span>
+<span id="cb7-14"><a href="#cb7-14"></a>                                            median),</span>
+<span id="cb7-15"><a href="#cb7-15"></a>         <span class="co"># Create highlight variable for CA to be used in ggplot</span></span>
+<span id="cb7-16"><a href="#cb7-16"></a>         <span class="at">highlight =</span> state_name_abbreviation <span class="sc">==</span> <span class="st">"CA"</span>)</span>
+<span id="cb7-17"><a href="#cb7-17"></a></span>
+<span id="cb7-18"><a href="#cb7-18"></a><span class="co"># Calculate Medians</span></span>
+<span id="cb7-19"><a href="#cb7-19"></a>national_median <span class="ot">&lt;-</span> <span class="fu">median</span>(nri_counties<span class="sc">$</span>national_risk_index_score_composite)</span>
+<span id="cb7-20"><a href="#cb7-20"></a>ca_median <span class="ot">&lt;-</span> <span class="fu">median</span>(nri_counties<span class="sc">$</span>national_risk_index_score_composite[nri_counties<span class="sc">$</span>state_name_abbreviation <span class="sc">==</span> <span class="st">"CA"</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="plot" class="level1">
 <h1>Plot</h1>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="co"># Calculate CA median</span></span>
-<span id="cb4-2"><a href="#cb4-2"></a>ca_median <span class="ot">&lt;-</span> <span class="fu">median</span>(</span>
-<span id="cb4-3"><a href="#cb4-3"></a>  nri_filtered<span class="sc">$</span>national_risk_index_state_percentile_composite[nri_filtered<span class="sc">$</span>state_name_abbreviation <span class="sc">==</span> <span class="st">"CA"</span>],</span>
-<span id="cb4-4"><a href="#cb4-4"></a>  <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb4-5"><a href="#cb4-5"></a></span>
-<span id="cb4-6"><a href="#cb4-6"></a><span class="co"># Plot</span></span>
-<span id="cb4-7"><a href="#cb4-7"></a>nri_filtered <span class="sc">%&gt;%</span></span>
-<span id="cb4-8"><a href="#cb4-8"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(</span>
-<span id="cb4-9"><a href="#cb4-9"></a>    <span class="at">x =</span> state_name_abbreviation,</span>
-<span id="cb4-10"><a href="#cb4-10"></a>    <span class="at">y =</span> national_risk_index_state_percentile_composite)) <span class="sc">+</span></span>
-<span id="cb4-11"><a href="#cb4-11"></a>  <span class="fu">geom_boxplot</span>(</span>
-<span id="cb4-12"><a href="#cb4-12"></a>    <span class="at">width =</span> <span class="fl">0.8</span>,</span>
-<span id="cb4-13"><a href="#cb4-13"></a>    <span class="at">fill =</span> <span class="st">"cyan"</span>,</span>
-<span id="cb4-14"><a href="#cb4-14"></a>    <span class="at">outlier.shape =</span> <span class="cn">NA</span>,</span>
-<span id="cb4-15"><a href="#cb4-15"></a>    <span class="at">coef =</span> <span class="dv">0</span>,</span>
-<span id="cb4-16"><a href="#cb4-16"></a>    <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
-<span id="cb4-17"><a href="#cb4-17"></a>  <span class="co"># Highlight CA</span></span>
-<span id="cb4-18"><a href="#cb4-18"></a>  gghighlight<span class="sc">::</span><span class="fu">gghighlight</span>(state_name_abbreviation <span class="sc">==</span> <span class="st">"CA"</span>) <span class="sc">+</span></span>
-<span id="cb4-19"><a href="#cb4-19"></a>  <span class="co"># Horizontal line for CA median</span></span>
-<span id="cb4-20"><a href="#cb4-20"></a>  <span class="fu">geom_hline</span>(</span>
-<span id="cb4-21"><a href="#cb4-21"></a>    <span class="at">yintercept =</span> ca_median,</span>
-<span id="cb4-22"><a href="#cb4-22"></a>    <span class="at">linetype =</span> <span class="st">"dashed"</span>,</span>
-<span id="cb4-23"><a href="#cb4-23"></a>    <span class="at">color =</span> <span class="st">"firebrick"</span>,</span>
-<span id="cb4-24"><a href="#cb4-24"></a>    <span class="at">size =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
-<span id="cb4-25"><a href="#cb4-25"></a>  <span class="fu">geom_jitter</span>(</span>
-<span id="cb4-26"><a href="#cb4-26"></a>    <span class="fu">aes</span>(<span class="at">fill =</span> state_name_abbreviation <span class="sc">==</span> <span class="st">"CA"</span>),</span>
-<span id="cb4-27"><a href="#cb4-27"></a>    <span class="at">shape =</span> <span class="dv">21</span>,</span>
-<span id="cb4-28"><a href="#cb4-28"></a>    <span class="at">color =</span> <span class="st">"black"</span>,</span>
-<span id="cb4-29"><a href="#cb4-29"></a>    <span class="at">alpha =</span> <span class="fl">0.8</span>,</span>
-<span id="cb4-30"><a href="#cb4-30"></a>    <span class="at">show.legend =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb4-31"><a href="#cb4-31"></a>    <span class="at">width =</span> <span class="fl">0.2</span>,</span>
-<span id="cb4-32"><a href="#cb4-32"></a>    <span class="at">height =</span> <span class="dv">0</span>) <span class="sc">+</span></span>
-<span id="cb4-33"><a href="#cb4-33"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"FALSE"</span> <span class="ot">=</span> <span class="st">"grey40"</span>, <span class="st">"TRUE"</span> <span class="ot">=</span> <span class="st">"cyan4"</span>)) <span class="sc">+</span></span>
-<span id="cb4-34"><a href="#cb4-34"></a>  <span class="fu">ylim</span>(<span class="dv">10</span>, <span class="cn">NA</span>) <span class="sc">+</span></span>
-<span id="cb4-35"><a href="#cb4-35"></a>  <span class="fu">labs</span>(</span>
-<span id="cb4-36"><a href="#cb4-36"></a>    <span class="at">title =</span> <span class="st">"Comparison of FEMA National Risk Index Scores by State"</span>,</span>
-<span id="cb4-37"><a href="#cb4-37"></a>    <span class="at">subtitle =</span> <span class="st">"California counties highlighted relative to other U.S. states"</span>,</span>
-<span id="cb4-38"><a href="#cb4-38"></a>    <span class="at">x =</span> <span class="st">""</span>,</span>
-<span id="cb4-39"><a href="#cb4-39"></a>    <span class="at">y =</span> <span class="st">"National Risk Index Score (Percentile)"</span>) <span class="sc">+</span></span>
-<span id="cb4-40"><a href="#cb4-40"></a>  <span class="co"># Theme</span></span>
-<span id="cb4-41"><a href="#cb4-41"></a>  <span class="fu">theme_light</span>() <span class="sc">+</span></span>
-<span id="cb4-42"><a href="#cb4-42"></a>  <span class="fu">theme</span>(</span>
-<span id="cb4-43"><a href="#cb4-43"></a>    <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">90</span>, <span class="at">vjust =</span> <span class="fl">0.5</span>),</span>
-<span id="cb4-44"><a href="#cb4-44"></a>    <span class="at">legend.position =</span> <span class="st">"none"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="co"># Create visualization</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a><span class="fu">ggplot</span>(nri_counties, <span class="fu">aes</span>(<span class="at">x =</span> national_risk_index_score_composite, </span>
+<span id="cb8-3"><a href="#cb8-3"></a>           <span class="at">y =</span> state_name_abbreviation,</span>
+<span id="cb8-4"><a href="#cb8-4"></a>           <span class="at">fill =</span> highlight)) <span class="sc">+</span></span>
+<span id="cb8-5"><a href="#cb8-5"></a>  <span class="co"># Remove outliers, makes plot cleaner </span></span>
+<span id="cb8-6"><a href="#cb8-6"></a>  <span class="fu">geom_boxplot</span>(<span class="at">outlier.shape =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb8-7"><a href="#cb8-7"></a>  <span class="co"># Color CA boxplot </span></span>
+<span id="cb8-8"><a href="#cb8-8"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"gray"</span>, <span class="st">"cyan"</span>), <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb8-9"><a href="#cb8-9"></a>  <span class="co"># Add vertical line at median national risk index score composite values of all states </span></span>
+<span id="cb8-10"><a href="#cb8-10"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> national_median, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">linewidth =</span> .<span class="dv">5</span>) <span class="sc">+</span></span>
+<span id="cb8-11"><a href="#cb8-11"></a>  <span class="co"># Add label for median line</span></span>
+<span id="cb8-12"><a href="#cb8-12"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">25</span>, <span class="at">y =</span> <span class="dv">47</span>, <span class="at">label =</span> <span class="st">"National median"</span>, </span>
+<span id="cb8-13"><a href="#cb8-13"></a>           <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.1</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb8-14"><a href="#cb8-14"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">80</span>, <span class="at">y=</span> <span class="dv">2</span>, <span class="at">label =</span> <span class="st">"CA Median"</span>,</span>
+<span id="cb8-15"><a href="#cb8-15"></a>           <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.1</span>, <span class="at">size =</span> <span class="dv">3</span>)<span class="sc">+</span></span>
+<span id="cb8-16"><a href="#cb8-16"></a>   <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> ca_median, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">linewidth =</span> .<span class="dv">5</span>, <span class="at">color =</span> <span class="st">"firebrick"</span>) <span class="sc">+</span></span>
+<span id="cb8-17"><a href="#cb8-17"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb8-18"><a href="#cb8-18"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"National Risk Index Score"</span>, </span>
+<span id="cb8-19"><a href="#cb8-19"></a>       <span class="at">y =</span> <span class="cn">NULL</span>, </span>
+<span id="cb8-20"><a href="#cb8-20"></a>       <span class="at">title =</span> <span class="st">"Comparison of FEMA National Risk Index Scores by State"</span>, </span>
+<span id="cb8-21"><a href="#cb8-21"></a>       <span class="at">subtitle =</span> <span class="st">"California counties highlighted relative to other U.S. states"</span>,</span>
+<span id="cb8-22"><a href="#cb8-22"></a>       <span class="at">caption =</span> <span class="st">"California counties have the highest median National Risk Index scores among U.S. states (median ≈ 95), nearly double the national median (≈ 50).</span><span class="sc">\n</span><span class="st">Data: FEMA National Risk Index (2025 Release)."</span>) <span class="sc">+</span></span>
+<span id="cb8-23"><a href="#cb8-23"></a>  <span class="fu">theme</span>(<span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb8-24"><a href="#cb8-24"></a>        <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb8-25"><a href="#cb8-25"></a>        <span class="at">plot.caption =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="dv">9</span>))  <span class="co"># Center subtitle</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="fema_nri_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" alt="California had a median of 94.85 of National Risk Index Score (Percentile)" width="672"></p>
+<p><img src="fema_nri_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" alt="Boxplots of county-level National Risk Index scores by state. California, colored in cyan, counties have a median score of approximately 95, which is substantially higher than the national median of about 50." width="672"></p>
 <figcaption>Comparison of FEMA NRI Score in California to other U.S. states. Data: FEMA National Risk Index Counties (2025 Release), downloaded from the FEMA Resilience Analysis and Planning Tool (RAPT). (Link: https://www.fema.gov/emergency-managers/practitioners/resilience-analysis-and-planning-tool).</figcaption>
 </figure>
 </div>

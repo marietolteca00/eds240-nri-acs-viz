@@ -1,0 +1,94 @@
+---
+title: "Visualizing FEMA NRI Data"
+author: "Joaquin Sandoval"
+format: html
+editor: visual
+date: 01/28/2026
+---
+# Import Libraries, Packages, and Data 
+```{r, message=FALSE}
+library(tidyverse)
+library(gghighlight)
+```
+
+```{r, message = FALSE, warning=FALSE}
+nri_counties <- read_csv(here::here("data", "National_Risk_Index_Counties_807384124455672111.csv")) |> 
+  janitor::clean_names()
+```
+
+# Initial Data Exploration 
+```{r, output = FALSE}
+# Looking at column names 
+names(nri_counties)
+
+# Looking at datatypes of variables of interest
+class(nri_counties$state_name_abbreviation)
+class(nri_counties$national_risk_index_score_composite)
+```
+
+## Build FEMA NRI Data visualization
+
+```{r, fig.asp= 1.1, fig.alt= "Boxplots of National Risk Index scores by state, ordered by median value. California is colored orange at the top because it ranks highest with a median score of 94.8, nearly double the national median of 50."}
+
+# Removing rows containing data from U.S territories and Washington D.C.
+nri_counties <- nri_counties |> 
+  filter(!state_name %in% c("American Samoa", "Northern Mariana Islands", "Virgin Islands", "District of Columbia", "Guam", "Puerto Rico"), 
+# Only selecting counties, removing planning areas, borough, census area, municipality etc.  
+         county_type == "County") |> 
+  # Reordering state name abbreviation based on median national risk index score composite values 
+   mutate(state_name_abbreviation = reorder(state_name_abbreviation, 
+                                            national_risk_index_score_composite, 
+                                            median),
+          # Create highlight variable for CA to be used later in ggplot. More suitable than gghighlight()
+         highlight = state_name_abbreviation == "CA")
+
+national_median <- median(nri_counties$national_risk_index_score_composite)
+ca_median <- ca_median <- median(nri_counties$national_risk_index_score_composite[nri_counties$state_name_abbreviation == "CA"])
+
+# Create visualization
+ggplot(nri_counties, aes(x = national_risk_index_score_composite, 
+           y = state_name_abbreviation,
+           fill = highlight)) +
+  # Remove outliers, makes plot cleaner 
+  geom_boxplot(outlier.shape = NA) +
+  # Color CA boxplot 
+  scale_fill_manual(values = c("grey90", "orange"), guide = "none") +
+  # Add vertical line at median national risk index score composite values of all states 
+  geom_vline(xintercept = national_median, linetype = "dashed", alpha = 0.5, linewidth = .5) +
+  # Add label for median line
+  annotate("text", x = 50, y = 47, label = "National median", 
+           hjust = -0.1, size = 3) +
+   geom_vline(xintercept = ca_median, linetype = "dashed", linewidth = .5, color = "orange") +
+  theme_minimal() +
+  labs(x = "National Risk Index Score", 
+       y = NULL, 
+       title = "Distribution of County Risk Scores by State", 
+       caption = "California counties (orange) rank highest with nearly double the national median risk score (94.8 vs 50).\nData: FEMA National Risk Index (2025 Release)") +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(hjust = 0.5), # Center title
+        plot.caption = element_text(hjust = 0.5))  # Center subtitle
+
+```
+
+## Questions
+
+1.  What are your variables of interest and what kinds of data (e.g. numeric, categorical, ordered, etc.) are they (a bullet point list is fine)?
+
+The variables of interest are state (factor) and national risk index score composite (numeric).
+
+2.  How did you decide which type of graphic form was best suited for answering the question? What alternative graphic forms could you have used instead? Why did you settle on this particular graphic form?
+
+I chose a boxplot to compare the distributions of county NRI scores across all 50 states. This visual shows summary statistics (median, quartiles, range) of each state while still being readable. Alternative choices could have been violin plots to show full distribution shapes or a dot plot of state medians which would have been more limited. I chose the boxplot because viewers can see both California's high median and its within-state variability against other states, while the ordered layout makes the ranking immediately obvious.
+
+3.  Summarize your main finding in no more than two sentences.
+
+California counties rank highest with nearly double the national median risk score (94.8 vs 50).
+
+4.  What modifications did you make to this visualization to make it more easily readable?
+
+I added vertical lines representing both the national and California median risk values, reordered states relative to their median national risk index score composite, and highlighted the california boxplot and vertical line orange.
+
+5.  Is there anything you wanted to implement, but didn’t know how? If so, please describe.
+
+It would have been cool to make an interactive plot that when you hover over one state's boxplot, the median values popped up. I know there is a way to do this with `tmap()` but I'm not sure with `ggplot()`.

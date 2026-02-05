@@ -2,7 +2,7 @@
 title: "FEMA National Risk Index (NRI)"
 description: "Visualizing FEMA NRI Counties in California Compared To Other States"
 author: "Marie Tolteca"
-date: 1/27/2025
+date: 2/04/2025
 toc: true
 code-line-numbers: true
 editor_options: 
@@ -20,83 +20,74 @@ library(here)
 nri <- read_csv(here("data","National_Risk_Index_Counties_807384124455672111.csv")) %>% 
   janitor::clean_names()
 ```
-# Data Wrangle
-```{r, output = FALSE}
+# Exploration
+```{r}
 # Check outputs in state_name
 unique(nri$state_name)
 
-# Filter for only US states (50 states)
-nri_filtered <- nri %>% 
-  filter(!state_name %in% c("Northern Mariana Islands", 
-                            "Puerto Rico", 
-                            "American Samoa", 
-                            "Guam", 
+unique(nri$state_name_abbreviation)
+
+```
+
+
+# Data Wrangle
+```{r, output = FALSE}
+# Removing rows containing data from U.S territories and Washington D.C.
+nri_counties <- nri |> 
+  filter(!state_name %in% c("American Samoa", 
+                            "Northern Mariana Islands", 
+                            "Virgin Islands", 
                             "District of Columbia", 
-                            "Virgin Islands")) %>% 
-  filter(county_type == c("County") ) %>% 
-  mutate(state_name_abbreviation = fct_reorder(
-    state_name_abbreviation,
-    national_risk_index_state_percentile_composite,
-    .fun = median,
-    na.rm = TRUE))
+                            "Guam", 
+                            "Puerto Rico"), 
+         # Only selecting counties, removing planning areas, borough, census area, municipality etc.  
+         county_type == "County") |> 
+  # Reordering state name abbreviation based on median national risk index score composite values 
+  mutate(state_name_abbreviation = reorder(state_name_abbreviation, 
+                                            national_risk_index_score_composite, 
+                                            median),
+         # Create highlight variable for CA to be used in ggplot
+         highlight = state_name_abbreviation == "CA")
 
-# Checking total number of rows
-nri_filtered %>%
-  count(state_name)
+# Calculate Medians
+national_median <- median(nri_counties$national_risk_index_score_composite)
+ca_median <- median(nri_counties$national_risk_index_score_composite[nri_counties$state_name_abbreviation == "CA"])
+
 ```
 
 # Plot
-```{r, warning=FALSE}
+```{r}
 #| fig-cap: "Comparison of FEMA NRI Score in California to other U.S. states. Data: FEMA National Risk Index Counties (2025 Release), downloaded from the FEMA Resilience Analysis and Planning Tool (RAPT). (Link: https://www.fema.gov/emergency-managers/practitioners/resilience-analysis-and-planning-tool)."
-#| fig-alt: "California had a median of 94.85 of National Risk Index Score (Percentile)"
+#| fig-alt: "Boxplots of county-level National Risk Index scores by state. California, colored in cyan, counties have a median score of approximately 95, which is substantially higher than the national median of about 50."
 
-# Calculate CA median
-ca_median <- median(
-  nri_filtered$national_risk_index_state_percentile_composite[nri_filtered$state_name_abbreviation == "CA"],
-  na.rm = TRUE)
-
-# Plot
-nri_filtered %>%
-  ggplot(aes(
-    x = state_name_abbreviation,
-    y = national_risk_index_state_percentile_composite)) +
-  geom_boxplot(
-    width = 0.8,
-    fill = "cyan",
-    outlier.shape = NA,
-    coef = 0,
-    alpha = 0.7) +
-  # Highlight CA
-  gghighlight::gghighlight(state_name_abbreviation == "CA") +
-  # Horizontal line for CA median
-  geom_hline(
-    yintercept = ca_median,
-    linetype = "dashed",
-    color = "firebrick",
-    size = 0.8) +
-  geom_jitter(
-    aes(fill = state_name_abbreviation == "CA"),
-    shape = 21,
-    color = "black",
-    alpha = 0.8,
-    show.legend = FALSE,
-    width = 0.2,
-    height = 0) +
-  scale_fill_manual(values = c("FALSE" = "grey40", "TRUE" = "cyan4")) +
-  ylim(10, NA) +
-  labs(
-    title = "Comparison of FEMA National Risk Index Scores by State",
-    subtitle = "California counties highlighted relative to other U.S. states",
-    x = "",
-    y = "National Risk Index Score (Percentile)") +
-  # Theme
-  theme_light() +
-  theme(
-    axis.text.x = element_text(angle = 90, vjust = 0.5),
-    legend.position = "none")
-
+# Create visualization
+ggplot(nri_counties, aes(x = national_risk_index_score_composite, 
+           y = state_name_abbreviation,
+           fill = highlight)) +
+  # Remove outliers, makes plot cleaner 
+  geom_boxplot(outlier.shape = NA) +
+  # Color CA boxplot 
+  scale_fill_manual(values = c("gray", "cyan"), guide = "none") +
+  # Add vertical line at median national risk index score composite values of all states 
+  geom_vline(xintercept = national_median, linetype = "dashed", alpha = 0.5, linewidth = .5) +
+  # Add label for median line
+  annotate("text", x = 25, y = 47, label = "National median", 
+           hjust = -0.1, size = 3) +
+  annotate("text", x = 80, y= 2, label = "CA Median",
+           hjust = -0.1, size = 3)+
+   geom_vline(xintercept = ca_median, linetype = "dashed", linewidth = .5, color = "firebrick") +
+  theme_minimal() +
+  labs(x = "National Risk Index Score", 
+       y = NULL, 
+       title = "Comparison of FEMA National Risk Index Scores by State", 
+       subtitle = "California counties highlighted relative to other U.S. states",
+       caption = "California counties have the highest median National Risk Index scores among U.S. states (median ≈ 95), nearly double the national median (≈ 50).\nData: FEMA National Risk Index (2025 Release).") +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        plot.caption = element_text(hjust = 0.5, size = 9))  # Center subtitle
 
 ```
+
 
 # Questions
 1. What are your variables of interest and what kinds of data (e.g. numeric, categorical, ordered, etc.) are they (a bullet point list is fine)?

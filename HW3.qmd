@@ -4,7 +4,7 @@ format: html
 ---
 
 # Libraries
-```{r, message=FALSE}
+```{r, message=FALSE, results='hide'}
 library(tidycensus)
 library(tidyverse)
 library(gghighlight)
@@ -47,36 +47,24 @@ nri_counties <- read_csv(here::here("data", "National_Risk_Index_Counties_807384
 
 # Data Wrangle
 ```{r}
-colnames(nri_counties)
-colnames(race_ethnicity)
-```
-
-
-```{r}
-acs_ca <- race_ethnicity %>% 
+acs_long <- race_ethnicity %>% 
   separate(name, into = c("county_name", "state"), sep = ", ") %>% 
   mutate(
-    county_type = if_else(str_detect(county_name, "County"),
-                           "County",
-                           NA_character_),
-    county_name = str_remove(county_name, " County")
-  ) %>% 
-  filter(state == "California")
-
-acs_race_long <- acs_ca %>% 
-  filter(label %in% c(
-    "Estimate!!Total",
-    "Estimate!!Total:!!White alone",
-    "Estimate!!Total:!!Black or African American alone",
-    "Estimate!!Total:!!American Indian and Alaska Native alone",
-    "Estimate!!Total:!!Asian alone",
-    "Estimate!!Total:!!Native Hawaiian and Other Pacific Islander alone",
-    "Estimate!!Total:!!Some Other Race alone",
-    "Estimate!!Total:!!Two or More Races",
-    "Estimate!!Total:!!Hispanic or Latino"))
-
-# Assign names to 
-acs_race_long <- acs_race_long %>% 
+    county_name = str_remove(county_name, " County")) %>% 
+  filter(state == "California") %>% 
+  
+  # keep only race rows
+  filter(
+    label %in% c(
+      "Estimate!!Total",
+      "Estimate!!Total:!!White alone",
+      "Estimate!!Total:!!Black or African American alone",
+      "Estimate!!Total:!!American Indian and Alaska Native alone",
+      "Estimate!!Total:!!Asian alone",
+      "Estimate!!Total:!!Native Hawaiian and Other Pacific Islander alone",
+      "Estimate!!Total:!!Some Other Race alone",
+      "Estimate!!Total:!!Two or More Races:",
+      "Estimate!!Total:!!Hispanic or Latino:")) %>% 
   mutate(
     race = case_when(
       label == "Estimate!!Total" ~ "total_population",
@@ -86,19 +74,64 @@ acs_race_long <- acs_race_long %>%
       label == "Estimate!!Total:!!Asian alone" ~ "Asian",
       label == "Estimate!!Total:!!Native Hawaiian and Other Pacific Islander alone" ~ "Native Hawaiian and Other Pacific Islander",
       label == "Estimate!!Total:!!Some Other Race alone" ~ "Some Other Race",
-      label == "Estimate!!Total:!!Two or More Races" ~ "Two or More Races",
-      label == "Estimate!!Total:!!Hispanic or Latino" ~ "Hispanic or Latino"
-    )
-  )
+      label == "Estimate!!Total:!!Two or More Races:" ~ "Two or More Races",
+      label == "Estimate!!Total:!!Hispanic or Latino:" ~ "Hispanic or Latino")) %>% 
+  select(county_name, race, population = estimate)
 
-# Combine all together to pivot wider
-acs_race <- acs_race_long %>% 
-  select(county_name, race, estimate) %>% 
-  pivot_wider(
-    names_from = race,
-    values_from = estimate
-  )
+# Join dataframes
+combined <- acs_long %>% 
+  left_join(
+    nri_counties %>% 
+      filter(state_name_abbreviation == "CA") %>% 
+      select(
+        county_name,
+        risk_percentile = national_risk_index_state_percentile_composite),
+    by = "county_name")
 
 
+```
+
+# Summary of population weighted risk
+```{r}
+# Check total number of rows
+nrow(combined)
+
+
+summary_race <- combined %>% 
+  # Exclude Total Population
+  filter(race != "total_population") %>% 
+  group_by(race) %>% 
+  # Get the mean of risk % and population
+  summarise(
+    weighted_risk = weighted.mean(risk_percentile, population, na.rm = TRUE)) %>% 
+  # Order from smallest to largest
+   mutate(
+    race = fct_reorder(race, weighted_risk))
+
+# Check total number of rows
+nrow(summary_race)
+```
+```{r}
+# Check values in weighted risk column
+unique(summary_race$weighted_risk)
+```
+
+# Plot
+```{r}
+
+ggplot(summary_race2,
+       aes(x = weighted_risk,
+           y = race)) +
+  geom_point(fill = "#2b8cbe", width = 0.7, alpha = 0.5)+
+
+  geom_vline(xintercept = mean(summary_race$weighted_risk, na.rm=TRUE), color = "red", linetype = "dashed")+
+  theme_linedraw()+
+  labs(
+    x = "Weighted Risk")+
+  theme(
+    legend.position = "none",
+    # Remove Y-axis
+    axis.title.y = element_blank())
+  
 ```
 

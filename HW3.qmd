@@ -1,0 +1,104 @@
+---
+title: "HW3"
+format: html
+---
+
+# Libraries
+```{r, message=FALSE}
+library(tidycensus)
+library(tidyverse)
+library(gghighlight)
+library(scales)
+library(janitor)
+```
+
+# Retrieving data from API
+Steps 2 and 3 were commented our to not ping the API every single time we rerun this code chunk.
+```{r, message=FALSE, warning=FALSE}
+#Step 1a: see all available ACS variables + descriptions
+acs_vars <- tidycensus::load_variables(year = 2023,
+                                       dataset = "acs1")
+
+#Step 1b: import race & ethnicity data
+race_ethnicity <- tidycensus::get_acs(
+  geography = "county",
+  survey = "acs1",
+  # NOTE: you may not end up using all these variables
+  variables = c("B01003_001", "B02001_002", "B02001_003", 
+                "B02001_004", "B02001_005", "B02001_006",
+                "B02001_007", "B02001_008", "B03002_012",
+                "B03002_002"),
+  state = "CA", 
+  year = 2023) |>
+  # join variable descriptions (so we know what's what!)
+  dplyr::left_join(acs_vars, by = dplyr::join_by(variable == name)) %>% 
+  clean_names()
+
+#Step 2: write ACS data to file
+#readr::write_csv(race_ethnicity, here::here("data", "ACS-1yr-2023-county-race-ethnicity.csv"))
+
+#Step 3: read in your CSV file
+#race_ethnicity <- readr::read_csv(here::here("data", "ACS-1yr-2023-county-race-ethnicity.csv"))
+
+# Load in NRI Data
+nri_counties <- read_csv(here::here("data", "National_Risk_Index_Counties_807384124455672111.csv")) %>% 
+  janitor::clean_names()
+```
+
+# Data Wrangle
+```{r}
+colnames(nri_counties)
+colnames(race_ethnicity)
+```
+
+
+```{r}
+acs_ca <- race_ethnicity %>% 
+  separate(name, into = c("county_name", "state"), sep = ", ") %>% 
+  mutate(
+    county_type = if_else(str_detect(county_name, "County"),
+                           "County",
+                           NA_character_),
+    county_name = str_remove(county_name, " County")
+  ) %>% 
+  filter(state == "California")
+
+acs_race_long <- acs_ca %>% 
+  filter(label %in% c(
+    "Estimate!!Total",
+    "Estimate!!Total:!!White alone",
+    "Estimate!!Total:!!Black or African American alone",
+    "Estimate!!Total:!!American Indian and Alaska Native alone",
+    "Estimate!!Total:!!Asian alone",
+    "Estimate!!Total:!!Native Hawaiian and Other Pacific Islander alone",
+    "Estimate!!Total:!!Some Other Race alone",
+    "Estimate!!Total:!!Two or More Races",
+    "Estimate!!Total:!!Hispanic or Latino"))
+
+# Assign names to 
+acs_race_long <- acs_race_long %>% 
+  mutate(
+    race = case_when(
+      label == "Estimate!!Total" ~ "total_population",
+      label == "Estimate!!Total:!!White alone" ~ "White",
+      label == "Estimate!!Total:!!Black or African American alone" ~ "Black or African American",
+      label == "Estimate!!Total:!!American Indian and Alaska Native alone" ~ "American Indian and Alaska Native",
+      label == "Estimate!!Total:!!Asian alone" ~ "Asian",
+      label == "Estimate!!Total:!!Native Hawaiian and Other Pacific Islander alone" ~ "Native Hawaiian and Other Pacific Islander",
+      label == "Estimate!!Total:!!Some Other Race alone" ~ "Some Other Race",
+      label == "Estimate!!Total:!!Two or More Races" ~ "Two or More Races",
+      label == "Estimate!!Total:!!Hispanic or Latino" ~ "Hispanic or Latino"
+    )
+  )
+
+# Combine all together to pivot wider
+acs_race <- acs_race_long %>% 
+  select(county_name, race, estimate) %>% 
+  pivot_wider(
+    names_from = race,
+    values_from = estimate
+  )
+
+
+```
+

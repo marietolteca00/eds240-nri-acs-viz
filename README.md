@@ -14,7 +14,8 @@ The final visualization uses **boxplots with overlaid jittered points** to show 
 ```
 .
 ├── data
-│   └── National_Risk_Index_Counties_807384124455672111.csv
+│  └── National_Risk_Index_Counties_807384124455672111.csv
+│  └── ACS-1yr-2023-county-race-ethnicity.csv
 ├── eds240-nri-acs-viz.Rproj
 ├── fema_nri_files
 │   ├── figure-html
@@ -22,6 +23,7 @@ The final visualization uses **boxplots with overlaid jittered points** to show 
 │   │   └── unnamed-chunk-5-1.png
 ├── fema_nri.html
 ├── fema_nri.qmd
+├── HW3.qmd
 └── README.md
 ```
 

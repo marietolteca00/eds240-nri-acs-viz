@@ -29,7 +29,6 @@ unique(nri$state_name_abbreviation)
 
 ```
 
-
 # Data Wrangle
 ```{r, output = FALSE}
 # Removing rows containing data from U.S territories and Washington D.C.
@@ -57,8 +56,12 @@ ca_median <- median(nri_counties$national_risk_index_score_composite[nri_countie
 
 # Plot
 ```{r}
-#| fig-cap: "Comparison of FEMA NRI Score in California to other U.S. states. Data: FEMA National Risk Index Counties (2025 Release), downloaded from the FEMA Resilience Analysis and Planning Tool (RAPT). (Link: https://www.fema.gov/emergency-managers/practitioners/resilience-analysis-and-planning-tool)."
+#| fig-cap: "Comparison of FEMA National Risk Index (NRI) scores across U.S. states. California counties are highlighted in cyan, with a red dashed vertical line indicating California’s median score."
 #| fig-alt: "Boxplots of county-level National Risk Index scores by state. California, colored in cyan, counties have a median score of approximately 95, which is substantially higher than the national median of about 50."
+#| fig-height: 12
+#| fig-width: 8
+#| fig-asp: 1.3
+
 
 # Create visualization
 ggplot(nri_counties, aes(x = national_risk_index_score_composite, 
@@ -71,7 +74,7 @@ ggplot(nri_counties, aes(x = national_risk_index_score_composite,
   # Add vertical line at median national risk index score composite values of all states 
   geom_vline(xintercept = national_median, linetype = "dashed", alpha = 0.5, linewidth = .5) +
   # Add label for median line
-  annotate("text", x = 25, y = 47, label = "National median", 
+  annotate("text", x = 25, y = 45, label = "National Median", 
            hjust = -0.1, size = 3) +
   annotate("text", x = 80, y= 2, label = "CA Median",
            hjust = -0.1, size = 3)+
@@ -81,10 +84,10 @@ ggplot(nri_counties, aes(x = national_risk_index_score_composite,
        y = NULL, 
        title = "Comparison of FEMA National Risk Index Scores by State", 
        subtitle = "California counties highlighted relative to other U.S. states",
-       caption = "California counties have the highest median National Risk Index scores among U.S. states (median ≈ 95), nearly double the national median (≈ 50).\nData: FEMA National Risk Index (2025 Release).") +
+       caption = "California counties have the highest median National Risk Index scores among U.S. states (≈ 95),nearly double the national median(≈ 50).\nData: FEMA National Risk Index (2025 Release).") +
   theme(panel.grid.major.y = element_blank(),
         panel.grid.minor = element_blank(),
-        plot.caption = element_text(hjust = 0.5, size = 9))  # Center subtitle
+        plot.caption = element_text(hjust = 0.5, size = 9)) # Center subtitle
 
 ```
 

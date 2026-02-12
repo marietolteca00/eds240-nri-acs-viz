@@ -42,8 +42,11 @@ The final visualization uses **boxplots with overlaid jittered points** to show 
 -   `state_name` (character): Full U.S. state name
 -   `state_name_abbreviation` (character): Two-letter state abbreviation
 -   `national_risk_index_score_composite` (numeric): Composite National Risk Index score at the county level
+-   `race`: Groups of Race and Ethinicity
+-   `county_name`: County Names in the US
+-   `national_risk_index_state_percentile_composite`: (numeric) Composite National Risk Index state percentile at the county level
 
-Only **U.S. states** are included in the analysis; territories and the District of Columbia were removed.
+Only **U.S. states and California Counties** are included in the analysis; territories and the District of Columbia were removed.
 
 ------------------------------------------------------------------------
 
@@ -55,15 +58,18 @@ Key preprocessing steps include:
 -   Filtering to county-level observations only
 -   Reordering factor levels to display California first in the visualization
 -   Calculating the **median NRI score for California counties** for annotation
+-   Separating words (county and state) to only have the county name
+-   Creating new columns and Calculating a weighted risk from the percentile
+-   Annotating the mean of the weight risk to demonstrate which groups are in a higher and lower risk
 
 ------------------------------------------------------------------------
 
 ## Visualization Design
 
--   **Primary chart:** Boxplot by state
--   **Overlay:** Jittered points representing individual counties
+-   **Primary chart:** Boxplot by state and Lollipop
+-   **Overlay:** Jittered points representing individual counties and with segmented lines
 -   **Highlighting:** California counties are emphasized using color
--   **Annotation:** A horizontal dashed line marks California’s median NRI percentile 
+-   **Annotation:** A horizontal dashed line marks California’s median NRI percentile and a vertical line for average weight risk
 
 ### Visualization Choices
 
@@ -71,6 +77,7 @@ Key preprocessing steps include:
 -   Jittered points reveal distribution and density
 -   Custom colors improve interpretability
 -   Axis labels and theme adjustments enhance readability
+-   Lollipop (point and line) to show distribution
 
 ------------------------------------------------------------------------
 
@@ -79,6 +86,7 @@ Key preprocessing steps include:
 -   California counties have **among the highest median NRI scores** relative to other states.
 -   The median NRI score for California counties is approximately **94.85**.
 -   Several states show substantially lower median NRI scores.
+-   Hispanic or Latino, Native Hawaiian and Other Pacific Islander, and Black populations have higher average risk than other groups, with values clustered near the upper end of the percentile scale.
 
 ------------------------------------------------------------------------
 
@@ -87,6 +95,9 @@ Key preprocessing steps include:
 -   `ggplot2`
 -   `forcats`
 -   `gghighlight`
+-   `tidycensus`
+-   `scales`
+-   `janitor`
 
 
 

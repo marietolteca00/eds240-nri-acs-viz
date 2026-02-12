@@ -1,10 +1,13 @@
 ---
-title: "HW3"
+title: "Visualizing FEMA NRI x ACS Data"
+subtitle: "Climate Hazard Risk Exposure vary across Racial / Ethnic Groups in California"
+author: "Marie Tolteca"
+date: 02/11/2026
 format: html
 ---
 
 # Libraries
-```{r, message=FALSE, results='hide'}
+```{r, message=FALSE, results='hide', warning=FALSE}
 library(tidycensus)
 library(tidyverse)
 library(gghighlight)
@@ -65,6 +68,7 @@ acs_long <- race_ethnicity %>%
       "Estimate!!Total:!!Some Other Race alone",
       "Estimate!!Total:!!Two or More Races:",
       "Estimate!!Total:!!Hispanic or Latino:")) %>% 
+  # create new column
   mutate(
     race = case_when(
       label == "Estimate!!Total" ~ "total_population",
@@ -87,8 +91,6 @@ combined <- acs_long %>%
         county_name,
         risk_percentile = national_risk_index_state_percentile_composite),
     by = "county_name")
-
-
 ```
 
 # Summary of population weighted risk
@@ -96,12 +98,12 @@ combined <- acs_long %>%
 # Check total number of rows
 nrow(combined)
 
-
+# group by and summarise
 summary_race <- combined %>% 
   # Exclude Total Population
   filter(race != "total_population") %>% 
   group_by(race) %>% 
-  # Get the mean of risk % and population
+  # Calculate average risk percentile weighted by population
   summarise(
     weighted_risk = weighted.mean(risk_percentile, population, na.rm = TRUE)) %>% 
   # Order from smallest to largest
@@ -117,21 +119,70 @@ unique(summary_race$weighted_risk)
 ```
 
 # Plot
+
 ```{r}
+#|fig-cap: "Population weighted mean FEMA National Risk Index (NRI) percentiles by race and ethnicity across California counties."
+#|fig-alt: "Lollipop plot showing population weighted FEMA National Risk Index (NRI) percentiles by race and ethnicity in California. Asian, Hispanic or Latino, and Black populations have higher average risk than other groups, with values clustered near the upper end of the percentile scale. A red vertical dashed line was added to describe the overall mean."
+#|fig-height: 6
+#|fig-asp: 0.5
 
-ggplot(summary_race2,
+
+ggplot(summary_race,
        aes(x = weighted_risk,
-           y = race)) +
-  geom_point(fill = "#2b8cbe", width = 0.7, alpha = 0.5)+
+           y = fct_reorder(race, weighted_risk))) +
+  # Line for lollipop
+    geom_segment(aes(x = 98.5, xend = weighted_risk,
+                   yend = race),
+               linewidth = 1,
+               color = "black") +
+  # Points
+  geom_point(size = 4, color = "#B03A2E") +
 
-  geom_vline(xintercept = mean(summary_race$weighted_risk, na.rm=TRUE), color = "red", linetype = "dashed")+
-  theme_linedraw()+
-  labs(
-    x = "Weighted Risk")+
-  theme(
-    legend.position = "none",
-    # Remove Y-axis
-    axis.title.y = element_blank())
+  # X-Axis scale
+  scale_x_continuous(limits = c(98.5, 100),
+                     labels = scales::percent_format(scale = 1)) +
+  # Vertical line
+  geom_vline(xintercept = mean(summary_race$weighted_risk), color = "red", linetype="dashed") +
   
-```
+  # Text for vertical line
+  annotate("text",
+         x = mean(summary_race$weighted_risk),
+         y = 1.5,
+         label = "Overall mean (99.07%)",
+         hjust = -0.1,
+         color = "Black",
+         size = 4) +
 
+  labs(
+    title = "Climate Hazard Risk Exposure Differs Across Racial \nand Ethnic Groups in California",
+    subtitle = "Hispanic or Latino, Native Hawaiian and Other Pacific Islander, and \nBlack populations tend to live in counties with higher climate risk",
+    x = "Population weighted mean National Risk Index percentile",
+    caption = "A red veritcal dashed line displays the overall mean. \nData: FEMA National Risk Index (2023 Release); U.S. Census Bureau ACS 1-year estimates (2023)",
+    y = "") +
+  
+  theme_linedraw() +
+  theme(
+    plot.title = element_text(face = "bold", size = 12),
+    plot.subtitle = element_text(size = 10),
+    axis.text.y = element_text(size = 9))
+
+```
+# Questions
+1. What are your variables of interest and what kinds of data (e.g. numeric, categorical, ordered, etc.) are they (a bullet point list is fine)?
+- Race / ethnicity (categorical)
+- County (categorical)
+- Population counts by race and county (numeric, discrete)
+- National Risk Index percentile (numeric, continuous)
+- Population weighted mean National Risk Index percentile by race (numeric, continuous)
+
+2. How did you decide which type of graphic form was best suited for answering the question? What alternative graphic forms could you have used instead? Why did you settle on this particular graphic form?
+- I felt that this type of graph (lollipop) displayed the population weighted risk percentiles better since they're all clustered near the upper end of the scale, making small differences between groups difficult to see with a standard bar chart. The other plots I tried were boxplot and bar/ column plot, the boxplots were very small. I personally did not like how the barplot, since the variation was not as clear.
+
+3. Summarize your main finding in no more than two sentences.
+- Asian, Hispanic or Latino, and Black populations experience higher average climate hazard risk exposure across California counties. White, Native Hawaiian and Other Pacific Islander, and American Indian and Alaska Native populations tend to live in counties with slightly lower average risk percentiles.
+
+4. What modifications did you make to this visualization to make it more easily readable?
+- I calculated a population weighted mean of risk percentiles so that counties with larger populations contribute more to each groups estimated exposure. I reordered racial and ethnic groups by risk level, narrowed the x-axis range to highlight small differences, added a reference line for the overall mean, and applied a simplified theme and custom colors to reduce visual clutter.
+
+5. Is there anything you wanted to implement, but didn’t know how? If so, please describe.
+- Personally, the plot looks blurry to me (it could be my screen or something) and just make it more clear.

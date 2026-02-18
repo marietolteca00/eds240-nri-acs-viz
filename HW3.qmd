@@ -119,8 +119,8 @@ unique(summary_race$weighted_risk)
 ```
 
 # Plot
-
-```{r}
+## Inaccurate Plot- The x-axis needs to be scaled from 0-100 to rule out any misleading information.
+```{r, echo=FALSE,include=FALSE}
 #|fig-cap: "Population weighted mean FEMA National Risk Index (NRI) percentiles by race and ethnicity across California counties."
 #|fig-alt: "Lollipop plot showing population weighted FEMA National Risk Index (NRI) percentiles by race and ethnicity in California. Asian, Hispanic or Latino, and Black populations have higher average risk than other groups, with values clustered near the upper end of the percentile scale. A red vertical dashed line was added to describe the overall mean."
 #|fig-height: 6
@@ -167,6 +167,46 @@ ggplot(summary_race,
     axis.text.y = element_text(size = 9))
 
 ```
+
+# Updated Plot
+```{r}
+#|fig-cap: "Population weighted mean FEMA National Risk Index (NRI) percentiles by race and ethnicity across California counties."
+#|fig-alt: "Lollipop plot showing population weighted FEMA National Risk Index (NRI) percentiles by race and ethnicity in California. All racial and ethnic groups show very high risk exposure, with weighted percentiles clustering tightly between 98.7% and 99.3%. Asian, Hispanic or Latino, and Black populations have slightly higher values within this narrow range. Native Hawaiian and Other Pacific Islander, American Indian and Alaska Native, and White populations are still in the upper range, following closely behind."
+#|fig-height: 6
+#|fig-asp: 0.5
+
+
+ggplot(summary_race,
+       aes(x = weighted_risk,
+           y = fct_reorder(race, weighted_risk))) +
+  geom_segment(aes(xend = weighted_risk, yend = race),
+               x = 0,
+               linewidth = 1,
+               color = "black") +
+  geom_point(size = 4, color = "#B03A2E") +
+  geom_text(aes(label = paste0(round(weighted_risk, 2), "%")),
+            hjust = 0.05,
+            vjust = -1.0,
+            size = 3.0) +
+  scale_x_continuous(limits = c(0, 105),
+                     labels = scales::percent_format(scale = 1)) +
+  
+  labs(
+    title = "Climate Hazard Risk Exposure Differs Across Racial \nand Ethnic Groups in California",
+    subtitle = "Hispanic or Latino, Native Hawaiian and Other Pacific Islander, and \nBlack populations tend to live in counties with higher climate risk",    
+    x = "Population weighted mean National Risk Index percentile",
+    caption = "Data: FEMA National Risk Index (2023); U.S. Census ACS 1-year estimates (2023)",
+    y = "") +
+  theme_linedraw() +
+  theme(
+    plot.title = element_text(face = "bold", size = 12),
+    axis.text.y = element_text(size = 8),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(5, 15, 5, 5)
+  )
+```
+
+
 # Questions
 1. What are your variables of interest and what kinds of data (e.g. numeric, categorical, ordered, etc.) are they (a bullet point list is fine)?
 - Race / ethnicity (categorical)

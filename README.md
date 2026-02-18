@@ -2,13 +2,13 @@
 
 #### Author: Marie Tolteca, MEDS Student
 
-#### Date: 01/28/2026
+#### Date: 02/17/2026
 
 ## Project Overview
 
-This project explores how **FEMA National Risk Index (NRI) scores for counties in California compare to counties in other U.S. states**. The analysis focuses on visualizing the distribution of county-level NRI scores by state, with California highlighted for comparison.
+This project has two parts. First, it explores how **FEMA National Risk Index (NRI) scores for counties in California compare to counties in other U.S. states**, visualizing the distribution of county-level NRI scores with California highlighted, in `HW2.qmd`. Second, it examines how **climate hazard risk exposure differs across racial and ethnic groups in California counties** by combining FEMA NRI scores with U.S. Census demographic data to calculate population-weighted mean risk percentiles for each racial and ethnic group, in `HW3.qmd`.
 
-The final visualization uses **boxplots with overlaid jittered points** to show both summary statistics and individual county-level variation.
+The final visualization in `HW2.qmd` uses **boxplots with overlaid jittered points** to show both summary statistics and individual county-level variation. In `HW3.qmd` the final visualization uses *lollipop plot* to show that all racial and ethnic groups in California face extremely high climate risk (98.7%-99.3% percentile), with Asian, Hispanic or Latino, and Black populations experiencing slightly higher exposure within this narrow range.
 
 ## Repository Structure
 ```
@@ -23,6 +23,7 @@ The final visualization uses **boxplots with overlaid jittered points** to show 
 │   │   └── unnamed-chunk-5-1.png
 ├── fema_nri.html
 ├── fema_nri.qmd
+├── HW2.qmd
 ├── HW3.qmd
 └── README.md
 ```
@@ -60,7 +61,7 @@ Key preprocessing steps include:
 -   Calculating the **median NRI score for California counties** for annotation
 -   Separating words (county and state) to only have the county name
 -   Creating new columns and Calculating a weighted risk from the percentile
--   Annotating the mean of the weight risk to demonstrate which groups are in a higher and lower risk
+-   Annotating the weighted risk percentiles on each racial and ethnic groups
 
 ------------------------------------------------------------------------
 
@@ -86,7 +87,7 @@ Key preprocessing steps include:
 -   California counties have **among the highest median NRI scores** relative to other states.
 -   The median NRI score for California counties is approximately **94.85**.
 -   Several states show substantially lower median NRI scores.
--   Hispanic or Latino, Native Hawaiian and Other Pacific Islander, and Black populations have higher average risk than other groups, with values clustered near the upper end of the percentile scale.
+-   Asian, Hispanic or Latino, and Black populations have higher average risk than other groups, with values clustered near the upper end of the percentile scale.
 
 ------------------------------------------------------------------------
 
